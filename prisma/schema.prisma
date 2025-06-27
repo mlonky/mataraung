@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model TripPackage {
+  id          String        @id @default(cuid())
+  name        String
+  description String
+  image       String?
+  location    String
+  price       Int
+  duration    String
+  maxPeople   Int
+  status      PackageStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  bookings Booking[]
+
+  @@map("trip_packages")
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  customerName String
+  whatsapp     String
+  people       Int
+  tripDate     DateTime
+  notes        String?
+  status       BookingStatus @default(PENDING)
+  totalPrice   Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  packageId String
+  package   TripPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
+}
+
+model BlogPost {
+  id        String     @id @default(cuid())
+  title     String
+  slug      String     @unique
+  excerpt   String
+  content   String
+  image     String?
+  status    PostStatus @default(DRAFT)
+  views     Int        @default(0)
+  category  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  authorId String
+  author   TeamMember @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("blog_posts")
+}
+
+model TeamMember {
+  id             String       @id @default(cuid())
+  name           String
+  role           String
+  specialization String
+  experience     String
+  location       String
+  image          String?
+  bio            String
+  achievements   String[] // Array of achievements
+  rating         Float        @default(0)
+  trips          Int          @default(0)
+  status         MemberStatus @default(ACTIVE)
+  joinDate       DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  // Relations
+  blogPosts BlogPost[]
+
+  @@map("team_members")
+}
+
+model Admin {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      AdminRole @default(ADMIN)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("admins")
+}
+
+model Settings {
+  id                    String   @id @default(cuid())
+  companyName           String   @default("MataRaung")
+  companyEmail          String   @default("info@mataraung.com")
+  companyPhone          String   @default("+62 812-3456-7890")
+  companyWhatsapp       String   @default("6281234567890")
+  companyAddress        String   @default("Jakarta, Indonesia")
+  companyDescription    String   @default("Jelajahi keindahan Indonesia bersama MataRaung")
+  emailNotifications    Boolean  @default(true)
+  whatsappNotifications Boolean  @default(true)
+  blogNotifications     Boolean  @default(false)
+  maintenanceMode       Boolean  @default(false)
+  autoApproveBooking    Boolean  @default(false)
+  maxBookingPerDay      Int      @default(10)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("settings")
+}
+
+enum PackageStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+  CANCELLED
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+}
